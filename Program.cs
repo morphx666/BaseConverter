@@ -35,14 +35,13 @@
 
             int fb = int.Parse(argv[1]);
             int tb = int.Parse(argv[2]);
-            string v = argv[0];
+            string v = argv[0].ToUpper();
 
             if(v.Contains('-')) {
                 UInt64[] vs = v.Split('-').Select(x => ToBase10(x, fb)).ToArray();
                 for(UInt64 i = vs[0]; i <= vs[^1]; i++) {
                     v = FromBase10(i, fb);
                     PrintConversion(v, fb, tb);
-                    Console.WriteLine();
                 }
             } else {
                 PrintConversion(v, fb, tb);
@@ -63,6 +62,7 @@
                 // http://www.unicode.org/charts/PDF/U2070.pdf
                 Console.Write(isBase ? char.ConvertFromUtf32(0x2080 + (r[i] - 48)) : r[i]);
             }
+            Console.WriteLine();
         }
 
         private static string Convert(string value, int fromBase, int toBase) {
@@ -80,7 +80,7 @@
                 value = (UInt64)Math.Floor((decimal)(value / b));
             }
             
-            return res;
+            return res == "" ? "0" : res;
         }
 
         private static UInt64 ToBase10(string value, int fromBase) {
@@ -88,7 +88,9 @@
             int len = value.Length - 1;
             for(int i = 0; i <= len; i++) {
                 int d = (int)value[i] - 48;
-                UInt64 r = (UInt64)((d >= 10 ? d - 7 : d) * Math.Pow(fromBase, len - i));
+                d = d >= 10 ? d - 7 : d;
+                if(d >= fromBase) throw new ArgumentException($"Input value '{value[i]}' at position '{len - i}' not representable in base {fromBase}");
+                UInt64 r = (UInt64)(d * Math.Pow(fromBase, len - i));
                 res += r;
             }
 
